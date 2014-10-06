@@ -14,8 +14,7 @@ use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 use Sensio\Bundle\GeneratorBundle\Command\Helper\DialogHelper;
 use Voryx\RESTGeneratorBundle\Generator\DoctrineRESTGenerator;
 use Sensio\Bundle\GeneratorBundle\Generator\DoctrineFormGenerator;
-use Sensio\Bundle\GeneratorBundle\Manipulator\RoutingManipulator;
-
+use Voryx\RESTGeneratorBundle\Manipulator\RoutingManipulator;
 use Sensio\Bundle\GeneratorBundle\Command\Validators;
 
 /**
@@ -102,7 +101,7 @@ EOT
         $output->writeln('Generating the Form code: <info>OK</info>');
 
         // TODO: create routing automatically
-        if (1 == 2) {
+        if (1 == 1) {
             $runner($this->updateRouting($dialog, $input, $output, $bundle, $entity, $prefix));
         }
 
@@ -175,14 +174,13 @@ EOT
         $this->getContainer()->get('filesystem')->mkdir($bundle->getPath().'/Resources/config/');
         $routing = new RoutingManipulator($bundle->getPath().'/Resources/config/routing.yml');
         try {
-            // TODO: fix the format parameter - leaving it for now
-            $format = "annotation";
-            $ret = $auto ? $routing->addResource($bundle->getName(), $format, '/'.$prefix, 'routing/'.strtolower(str_replace('\\', '_', $entity))) : false;
+            $ret = $auto ? $routing->addResource($bundle->getName(), $entity, '/'.$prefix) : false;
         } catch (\RuntimeException $exc) {
             $ret = false;
         }
 
         if (!$ret) {
+            $format = "yml";
             $help = sprintf("        <comment>resource: \"@%s/Resources/config/routing/%s.%s\"</comment>\n", $bundle->getName(), strtolower(str_replace('\\', '_', $entity)), $format);
             $help .= sprintf("        <comment>prefix:   /%s</comment>\n", $prefix);
 
