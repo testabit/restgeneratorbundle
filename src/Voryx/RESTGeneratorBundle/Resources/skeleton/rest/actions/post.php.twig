@@ -1,7 +1,16 @@
+
     /**
 {% block phpdoc_method_header %}
      * Create a {{ entity }} entity.
      *
+     * @ApiDoc(
+     *  input={"class"="{{ form_namespace }}", "name"=""},
+     *  output={"class"="{{ namespace }}\Entity\{{ entity_namespace }}{{ entity }}"},
+     *  statusCodes={
+     *      201="Returned when successful",
+     *      400="Returned when an error has occurred while user creation",
+     *  }
+     * )
      * @View(statusCode=201, serializerEnableMaxDepthChecks=true)
      *
      * @param Request $request

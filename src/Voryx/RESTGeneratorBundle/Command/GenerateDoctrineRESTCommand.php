@@ -100,10 +100,7 @@ EOT
         $this->generateForm($bundle, $entity, $metadata);
         $output->writeln('Generating the Form code: <info>OK</info>');
 
-        // TODO: create routing automatically
-        if (1 == 1) {
-            $runner($this->updateRouting($dialog, $input, $output, $bundle, $entity, $prefix));
-        }
+        $runner($this->updateRouting($dialog, $input, $output, $bundle, $entity, $prefix));
 
         $dialog->writeGeneratorSummary($output, $errors);
     }

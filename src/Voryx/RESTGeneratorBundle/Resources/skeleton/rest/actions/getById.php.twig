@@ -1,6 +1,18 @@
+
     /**
 {% block phpdoc_method_header %}
      * Get a {{ entity }} entity
+     *
+     * @ApiDoc(
+     *  requirements={
+     *      {"name"="entity", "dataType"="integer", "requirement"="\d+", "description"="{{ entity }} id"}
+     *  },
+     *  output={"class"="{{ namespace }}\Entity\{{ entity_namespace }}{{ entity }}"},
+     *  statusCodes={
+     *      200="Returned when successful",
+     *      404="Returned when user is not found"
+     *  }
+     * )
      *
      * @View(serializerEnableMaxDepthChecks=true)
      *

@@ -1,6 +1,17 @@
+
     /**
 {% block phpdoc_method_header %}
      * Delete a {{ entity }} entity.
+     * @ApiDoc(
+     *  requirements={
+     *      {"name"="entity", "dataType"="integer", "requirement"="\d+", "description"="{{ entity }} identifier"}
+     *  },
+     *  statusCodes={
+     *      204="Returned when user is successfully deleted",
+     *      400="Returned when an error has occurred while user deletion",
+     *      404="Returned when unable to find user"
+     *  }
+     * )
      *
      * @View(statusCode=204)
      *

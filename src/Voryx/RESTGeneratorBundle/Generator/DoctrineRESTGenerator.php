@@ -154,6 +154,7 @@ class DoctrineRESTGenerator extends Generator
             'namespace'         => $this->bundle->getNamespace(),
             'entity_namespace'  => $entityNamespace,
             'format'            => $this->format,
+            'form_namespace'    => sprintf('%s\\Form\\%sType', $this->bundle->getNamespace(), $this->entity)
         ));
     }
 
