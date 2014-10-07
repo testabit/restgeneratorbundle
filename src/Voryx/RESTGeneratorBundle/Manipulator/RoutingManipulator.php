@@ -54,7 +54,7 @@ class RoutingManipulator extends Manipulator
 
             // Don't add same route twice
             if (false !== strpos($current, $route)) {
-                throw new \RuntimeException(sprintf('Bundle "%s" is already imported.', $bundle));
+                return false;
             }
         } elseif (!is_dir($dir = dirname($this->file))) {
             mkdir($dir, 0777, true);

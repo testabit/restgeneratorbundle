@@ -10,10 +10,12 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Output\Output;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 use Sensio\Bundle\GeneratorBundle\Command\Helper\DialogHelper;
 use Voryx\RESTGeneratorBundle\Generator\DoctrineRESTGenerator;
 use Sensio\Bundle\GeneratorBundle\Generator\DoctrineFormGenerator;
+use Voryx\RESTGeneratorBundle\Manipulator\AdminManipulator;
 use Voryx\RESTGeneratorBundle\Manipulator\RoutingManipulator;
 use Sensio\Bundle\GeneratorBundle\Command\Validators;
 
@@ -34,6 +36,7 @@ class GenerateDoctrineRESTCommand extends GenerateDoctrineCommand
             ->setDefinition(array(
                 new InputOption('entity', '', InputOption::VALUE_REQUIRED, 'The entity class name to initialize (shortcut notation)'),
                 new InputOption('route-prefix', '', InputOption::VALUE_REQUIRED, 'The route prefix'),
+                new InputOption('admin-file', '', InputOption::VALUE_OPTIONAL, 'Yml file for declaration of the admin service'),
                 new InputOption('overwrite', '', InputOption::VALUE_NONE, 'Do not stop the generation if rest api controller already exist, thus overwriting all generated files'),
             ))
             ->setDescription('Generates a REST api based on a Doctrine entity')
@@ -97,10 +100,17 @@ EOT
         $runner = $dialog->getRunner($output, $errors);
 
         // form
+        $dialog->writeSection($output, 'Form generation');
         $this->generateForm($bundle, $entity, $metadata);
         $output->writeln('Generating the Form code: <info>OK</info>');
 
+        $dialog->writeSection($output, 'Routing generation');
         $runner($this->updateRouting($dialog, $input, $output, $bundle, $entity, $prefix));
+
+        if($this->getContainer()->has('sonata.admin.pool')) {
+            $dialog->writeSection($output, 'Sonata admin generation');
+            $runner($this->generateAdmin($dialog, $input, $output, $bundle, $metadata, $entity, $this->getAdminFile($input)));
+        }
 
         $dialog->writeGeneratorSummary($output, $errors);
     }
@@ -123,7 +133,9 @@ EOT
             '',
         ));
 
-        $entity = $dialog->askAndValidate($output, $dialog->getQuestion('The Entity shortcut name', $input->getOption('entity')), array('Sensio\Bundle\GeneratorBundle\Command\Validators', 'validateEntityName'), false, $input->getOption('entity'));
+        $bundleNames = array_keys($this->getContainer()->get('kernel')->getBundles());
+
+        $entity = $dialog->askAndValidate($output, $dialog->getQuestion('The Entity shortcut name', $input->getOption('entity')), array('Sensio\Bundle\GeneratorBundle\Command\Validators', 'validateEntityName'), false, $input->getOption('entity'), $bundleNames);
         $input->setOption('entity', $entity);
         list($bundle, $entity) = $this->parseShortcutNotation($entity);
 
@@ -171,14 +183,9 @@ EOT
         $this->getContainer()->get('filesystem')->mkdir($bundle->getPath().'/Resources/config/');
         $routing = new RoutingManipulator($bundle->getPath().'/Resources/config/routing.yml');
         try {
-            $ret = $auto ? $routing->addResource($bundle->getName(), $entity, '/'.$prefix) : false;
+            $auto ? $routing->addResource($bundle->getName(), $entity, '/'.$prefix) : false;
         } catch (\RuntimeException $exc) {
-            $ret = false;
-        }
-
-        if (!$ret) {
-            $format = "yml";
-            $help = sprintf("        <comment>resource: \"@%s/Resources/config/routing/%s.%s\"</comment>\n", $bundle->getName(), strtolower(str_replace('\\', '_', $entity)), $format);
+            $help = sprintf("        <comment>resource: \"@%s/Controller/%sRESTController.php\"</comment>\n", $bundle->getName(), strtolower(str_replace('\\', '_', ucfirst($entity))));
             $help .= sprintf("        <comment>prefix:   /%s</comment>\n", $prefix);
 
             return array(
@@ -192,6 +199,37 @@ EOT
         }
     }
 
+    protected function generateAdmin(DialogHelper $dialog, InputInterface $input, OutputInterface $output, BundleInterface $bundle, $metadata, $entity, $filename)
+    {
+        $auto = true;
+
+        $group = ucfirst(str_replace('_', ' ',Container::underscore(substr($bundle->getName(), 0, -6))));
+        $label = $entity;
+        $translationDomain = 'Sonata';
+        if ($input->isInteractive()) {
+            $auto = $dialog->askConfirmation($output, $dialog->getQuestion('Confirm automatic generation of the Admin service', 'yes', '?'), true);
+            $group = $dialog->ask($output, $dialog->getQuestion('Group for the admin service', $group), $group);
+            $label = $dialog->ask($output, $dialog->getQuestion('Label for the admin service', $label), $label);
+            $translationDomain = $dialog->ask($output, $dialog->getQuestion('Translation domain for the admin service', $translationDomain), $translationDomain);
+        }
+
+        $output->write('Creating the service: ');
+        $this->getContainer()->get('filesystem')->mkdir($bundle->getPath().'/Resources/config/');
+        $admin = new AdminManipulator($bundle->getPath().'/Resources/config/'. $filename);
+        try {
+            $ret = $auto ? $admin->addResource($bundle, $entity, $group, $label, $translationDomain) : false;
+        } catch (\RuntimeException $exc) {
+            $ret = false;
+        }
+
+        if($ret) {
+            $output->write('Creating the Admin class: ');
+            $generator = $this->getGenerator($bundle);
+            $generator->generateAdminClass($metadata[0], $input->getOption('overwrite'));
+        }
+
+    }
+
     protected function getRoutePrefix(InputInterface $input, $entity)
     {
         $prefix = $input->getOption('route-prefix') ?: strtolower(str_replace(array('\\', '/'), '_', $entity));
@@ -201,6 +239,13 @@ EOT
         }
 
         return $prefix;
+    }
+
+    protected function getAdminFile(InputInterface $input)
+    {
+        $filename = $input->getOption('admin-file') ?: 'admin.yml';
+
+        return $filename;
     }
 
     protected function createGenerator($bundle = null)

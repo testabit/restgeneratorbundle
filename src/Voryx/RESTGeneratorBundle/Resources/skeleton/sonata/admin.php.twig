@@ -1,0 +1,83 @@
+<?php
+
+namespace {{ namespace }}\Admin{{ entity_namespace ? '\\' ~ entity_namespace : '' }};
+
+{% block use_statements %}
+use Sonata\AdminBundle\Admin\Admin;
+use Sonata\AdminBundle\Form\FormMapper;
+use Sonata\AdminBundle\Datagrid\DatagridMapper;
+use Sonata\AdminBundle\Datagrid\ListMapper;
+use Sonata\AdminBundle\Show\ShowMapper;
+{% endblock use_statements %}
+
+/**
+{% block phpdoc_class_header %}
+ * {{ entity }} Admin.
+{% endblock phpdoc_class_header %}
+ */
+{% block class_definition %}
+class {{ entity_class }}Admin extends Admin
+{% endblock class_definition %}
+{
+{% block class_body %}
+    /**
+     * {@inheritdoc}
+     */
+    protected function configureListFields(ListMapper $listMapper)
+    {
+        $listMapper
+        {%- for field in fields %}
+
+            ->add('{{ field }}')
+        {%- endfor %}
+
+        ;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function configureDatagridFilters(DatagridMapper $filterMapper)
+    {
+        $filterMapper
+        {%- for field in fields %}
+
+            ->add('{{ field }}')
+        {%- endfor %}
+
+        ;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function configureShowFields(ShowMapper $showMapper)
+    {
+        $showMapper
+        {%- for field in fields %}
+
+            ->add('{{ field }}')
+        {%- endfor %}
+
+        ;
+
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function configureFormFields(FormMapper $formMapper)
+    {
+        $formMapper
+            ->with('{{ entity }}', array('class' => 'col-md-6'))
+            {%- for field in fields %}
+
+                ->add('{{ field }}')
+            {%- endfor %}
+
+            ->end()
+
+        ;
+    }
+{% endblock class_body %}
+}

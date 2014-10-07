@@ -159,6 +159,68 @@ class DoctrineRESTGenerator extends Generator
     }
 
     /**
+     * Generates the admin class only.
+     *
+     */
+    public function generateAdminClass(ClassMetadataInfo $metadata, $forceOverwrite)
+    {
+        $dir = $this->bundle->getPath();
+
+        $parts = explode('\\', $this->entity);
+        $entityClass = array_pop($parts);
+        $entityNamespace = implode('\\', $parts);
+
+        $target = sprintf(
+            '%s/Admin/%s/%sAdmin.php',
+            $dir,
+            str_replace('\\', '/', $entityNamespace),
+            $entityClass
+        );
+
+        if (!$forceOverwrite && file_exists($target)) {
+            throw new \RuntimeException('Unable to generate the controller as it already exists.');
+        }
+
+        if(!is_dir("$dir/Admin")) {
+            mkdir("$dir/Admin");
+        }
+
+        $this->renderFile('sonata/admin.php.twig', $target, array(
+            'fields'            => $this->getFieldsFromMetadata($metadata),
+            'bundle'            => $this->bundle->getName(),
+            'entity'            => $this->entity,
+            'entity_class'      => $entityClass,
+            'namespace'         => $this->bundle->getNamespace(),
+            'entity_namespace'  => $entityNamespace
+        ));
+    }
+
+    /**
+     * Returns an array of fields. Fields can be both column fields and
+     * association fields.
+     *
+     * @param  ClassMetadataInfo $metadata
+     * @return array             $fields
+     */
+    private function getFieldsFromMetadata(ClassMetadataInfo $metadata)
+    {
+        $fields = (array) $metadata->fieldNames;
+
+        // Remove the primary key field if it's not managed manually
+        if (!$metadata->isIdentifierNatural()) {
+            $fields = array_diff($fields, $metadata->identifier);
+        }
+
+        foreach ($metadata->associationMappings as $fieldName => $relation) {
+            if ($relation['type'] !== ClassMetadataInfo::ONE_TO_MANY) {
+                $fields[] = $fieldName;
+            }
+        }
+
+        return $fields;
+    }
+
+    /**
      * Generates the functional test class only.
      *
      */
