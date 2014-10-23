@@ -18,11 +18,15 @@ class Configuration implements ConfigurationInterface
     public function getConfigTreeBuilder()
     {
         $treeBuilder = new TreeBuilder();
-        $treeBuilder->root('voryx_rest_generator');
+        $root = $treeBuilder->root('voryx_rest_generator');
 
-        // Here you should define the parameters that are allowed to
-        // configure your bundle. See the documentation linked above for
-        // more information on that topic.
+        $root
+            ->addDefaultsIfNotSet()
+            ->children()
+                ->scalarNode('use_manager_services')->defaultValue(true)->end()
+            ->end()
+        ;
+
         return $treeBuilder;
     }
 }

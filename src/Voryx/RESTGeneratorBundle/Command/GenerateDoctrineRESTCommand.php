@@ -16,6 +16,7 @@ use Sensio\Bundle\GeneratorBundle\Command\Helper\DialogHelper;
 use Voryx\RESTGeneratorBundle\Generator\DoctrineRESTGenerator;
 use Sensio\Bundle\GeneratorBundle\Generator\DoctrineFormGenerator;
 use Voryx\RESTGeneratorBundle\Manipulator\AdminManipulator;
+use Voryx\RESTGeneratorBundle\Manipulator\ManagerManipulator;
 use Voryx\RESTGeneratorBundle\Manipulator\RoutingManipulator;
 use Sensio\Bundle\GeneratorBundle\Command\Validators;
 
@@ -36,6 +37,7 @@ class GenerateDoctrineRESTCommand extends GenerateDoctrineCommand
             ->setDefinition(array(
                 new InputOption('entity', '', InputOption::VALUE_REQUIRED, 'The entity class name to initialize (shortcut notation)'),
                 new InputOption('route-prefix', '', InputOption::VALUE_REQUIRED, 'The route prefix'),
+                new InputOption('managers-file', '', InputOption::VALUE_OPTIONAL, 'Yml file for declaration of the entity manager service'),
                 new InputOption('admin-file', '', InputOption::VALUE_OPTIONAL, 'Yml file for declaration of the admin service'),
                 new InputOption('overwrite', '', InputOption::VALUE_NONE, 'Do not stop the generation if rest api controller already exist, thus overwriting all generated files'),
             ))
@@ -106,6 +108,9 @@ EOT
 
         $dialog->writeSection($output, 'Routing generation');
         $runner($this->updateRouting($dialog, $input, $output, $bundle, $entity, $prefix));
+
+        $dialog->writeSection($output, 'Entity manager service generation');
+        $runner($this->generateManager($dialog, $input, $output, $bundle, $metadata, $entity, $this->getManagersFile($input)));
 
         if($this->getContainer()->has('sonata.admin.pool')) {
             $dialog->writeSection($output, 'Sonata admin generation');
@@ -199,35 +204,63 @@ EOT
         }
     }
 
+    protected function generateManager(DialogHelper $dialog, InputInterface $input, OutputInterface $output, BundleInterface $bundle, $metadata, $entity, $filename)
+    {
+        $auto = true;
+
+        if ($input->isInteractive()) {
+            $auto = $dialog->askConfirmation($output, $dialog->getQuestion('Confirm automatic generation of the Manager service', 'yes', '?'), true);
+        }
+
+        if($auto) {
+            $output->write('Creating the service: ');
+            $this->getContainer()->get('filesystem')->mkdir($bundle->getPath().'/Resources/config/');
+            $manager = new ManagerManipulator($bundle->getPath().'/Resources/config/'. $filename);
+            try {
+                $ret = $auto ? $manager->addResource($bundle, $entity) : false;
+            } catch (\RuntimeException $exc) {
+                $ret = false;
+            }
+
+            if($ret) {
+                $output->write('Creating the Manager class: ');
+                $generator = $this->getGenerator($bundle);
+                $generator->generateManagerClass($metadata[0], $input->getOption('overwrite'));
+            }
+        }
+    }
+
     protected function generateAdmin(DialogHelper $dialog, InputInterface $input, OutputInterface $output, BundleInterface $bundle, $metadata, $entity, $filename)
     {
         $auto = true;
 
-        $group = ucfirst(str_replace('_', ' ',Container::underscore(substr($bundle->getName(), 0, -6))));
-        $label = $entity;
-        $translationDomain = 'Sonata';
         if ($input->isInteractive()) {
             $auto = $dialog->askConfirmation($output, $dialog->getQuestion('Confirm automatic generation of the Admin service', 'yes', '?'), true);
+        }
+
+        if($auto) {
+            $group = ucfirst(str_replace('_', ' ',Container::underscore(substr($bundle->getName(), 0, -6))));
+            $label = $entity;
+            $translationDomain = 'Sonata';
             $group = $dialog->ask($output, $dialog->getQuestion('Group for the admin service', $group), $group);
             $label = $dialog->ask($output, $dialog->getQuestion('Label for the admin service', $label), $label);
             $translationDomain = $dialog->ask($output, $dialog->getQuestion('Translation domain for the admin service', $translationDomain), $translationDomain);
-        }
 
-        $output->write('Creating the service: ');
-        $this->getContainer()->get('filesystem')->mkdir($bundle->getPath().'/Resources/config/');
-        $admin = new AdminManipulator($bundle->getPath().'/Resources/config/'. $filename);
-        try {
-            $ret = $auto ? $admin->addResource($bundle, $entity, $group, $label, $translationDomain) : false;
-        } catch (\RuntimeException $exc) {
-            $ret = false;
-        }
+            $output->write('Creating the service: ');
+            $this->getContainer()->get('filesystem')->mkdir($bundle->getPath().'/Resources/config/');
+            $admin = new AdminManipulator($bundle->getPath().'/Resources/config/'. $filename);
+            try {
+                $ret = $auto ? $admin->addResource($bundle, $entity, $group, $label, $translationDomain) : false;
+            } catch (\RuntimeException $exc) {
+                $ret = false;
+            }
 
-        if($ret) {
-            $output->write('Creating the Admin class: ');
-            $generator = $this->getGenerator($bundle);
-            $generator->generateAdminClass($metadata[0], $input->getOption('overwrite'));
+            if($ret) {
+                $output->write('Creating the Admin class: ');
+                $generator = $this->getGenerator($bundle);
+                $generator->generateAdminClass($metadata[0], $input->getOption('overwrite'));
+            }
         }
-
     }
 
     protected function getRoutePrefix(InputInterface $input, $entity)
@@ -239,6 +272,13 @@ EOT
         }
 
         return $prefix;
+    }
+
+    protected function getManagersFile(InputInterface $input)
+    {
+        $filename = $input->getOption('managers-file') ?: 'managers.yml';
+
+        return $filename;
     }
 
     protected function getAdminFile(InputInterface $input)

@@ -159,6 +159,42 @@ class DoctrineRESTGenerator extends Generator
     }
 
     /**
+     * Generates the manager service class only.
+     *
+     */
+    public function generateManagerClass(ClassMetadataInfo $metadata, $forceOverwrite)
+    {
+        $dir = $this->bundle->getPath();
+
+        $parts = explode('\\', $this->entity);
+        $entityClass = array_pop($parts);
+        $entityNamespace = implode('\\', $parts);
+
+        $target = sprintf(
+            '%s/Manager/%s/%sManager.php',
+            $dir,
+            str_replace('\\', '/', $entityNamespace),
+            $entityClass
+        );
+
+        if (!$forceOverwrite && file_exists($target)) {
+            throw new \RuntimeException('Unable to generate the controller as it already exists.');
+        }
+
+        if(!is_dir("$dir/Manager")) {
+            mkdir("$dir/Manager");
+        }
+
+        $this->renderFile('rest/manager.php.twig', $target, array(
+            'bundle'            => $this->bundle->getName(),
+            'entity'            => $this->entity,
+            'entity_class'      => $entityClass,
+            'namespace'         => $this->bundle->getNamespace(),
+            'entity_namespace'  => $entityNamespace
+        ));
+    }
+
+    /**
      * Generates the admin class only.
      *
      */

@@ -1,0 +1,20 @@
+<?php
+
+namespace {{ namespace }}\Manager{{ entity_namespace ? '\\' ~ entity_namespace : '' }};
+
+{% block use_statements %}
+use Voryx\RESTGeneratorBundle\Manager\BaseManager;
+{% endblock use_statements %}
+
+/**
+{% block phpdoc_class_header %}
+ * {{ entity }} manager service.
+{% endblock phpdoc_class_header %}
+ */
+{% block class_definition %}
+class {{ entity_class }}Manager extends BaseManager
+{% endblock class_definition %}
+{
+{% block class_body %}
+{% endblock class_body %}
+}
