@@ -3,6 +3,7 @@
 {% block phpdoc_method_header %}
      * Get all {{ entity }} entities.
      * @ApiDoc(
+     *  section="{{ entity }}"
      *  resource=true,
      *  output={"class"="{{ namespace }}\Entity\{{ entity_namespace }}{{ entity }}"}
      * )
