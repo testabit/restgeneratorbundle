@@ -152,7 +152,7 @@ EOT
             'prefix: /prefix/, /prefix/new, ...).',
             '',
         ));
-        $prefix = $dialog->ask($output, $dialog->getQuestion('Routes prefix', '/'.$prefix), '/'.$prefix);
+        $prefix = $dialog->ask($output, $dialog->getQuestion('Routes prefix', '/'.$prefix.'s'), '/'.$prefix.'s');
         $input->setOption('route-prefix', $prefix);
 
         // summary
