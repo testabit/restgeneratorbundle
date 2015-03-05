@@ -96,6 +96,14 @@ abstract class BaseManager implements ManagerInterface
     /**
      * {@inheritdoc}
      */
+    public function persist($object)
+    {
+        $this->em->persist($object);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function save($object)
     {
         $this->em->persist($object);
