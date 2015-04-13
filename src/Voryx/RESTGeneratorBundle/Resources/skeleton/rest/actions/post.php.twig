@@ -34,10 +34,7 @@
         $form->handleRequest($request);
 
         if ($form->isValid()) {
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($entity);
-            $em->flush();
-
+            $this->getManager()->save($entity);
             return $entity;
         }
 

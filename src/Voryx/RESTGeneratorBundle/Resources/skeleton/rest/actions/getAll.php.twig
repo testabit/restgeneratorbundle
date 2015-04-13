@@ -34,8 +34,7 @@
             $order_by = $paramFetcher->get('order_by');
             $filters = !is_null($paramFetcher->get('filters')) ? $paramFetcher->get('filters') : array();
 
-            $em = $this->getDoctrine()->getManager();
-            $entities = $em->getRepository('{{ bundle }}:{{ entity }}')->findBy($filters, $order_by, $limit, $offset);
+            $entities = $this->getManager()->findBy($filters, $order_by, $limit, $offset);
             if ($entities) {
                 return $entities;
             }

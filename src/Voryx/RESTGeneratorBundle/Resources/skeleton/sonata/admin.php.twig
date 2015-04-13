@@ -30,6 +30,7 @@ class {{ entity_class }}Admin extends Admin
 
             ->add('{{ field }}')
         {%- endfor %}
+
             ->add('_action', 'actions', array(
                 'actions' => array(
                     'delete' => array(),

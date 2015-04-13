@@ -54,5 +54,14 @@ class {{ entity_class }}RESTController extends VoryxController
     {%- include 'rest/actions/patch.php.twig' %}
 
     {%- include 'rest/actions/delete.php.twig' %}
+
+    /**
+     * @return \Voryx\RESTGeneratorBundle\Manager\BaseManager
+     */
+    protected function getManager()
+    {
+        return $this->get('{{ manager_service_name }}');
+    }
+
 {% endblock class_body %}
 }

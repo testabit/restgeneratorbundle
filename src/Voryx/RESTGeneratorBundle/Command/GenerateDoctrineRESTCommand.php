@@ -152,7 +152,7 @@ EOT
             'prefix: /prefix/, /prefix/new, ...).',
             '',
         ));
-        $prefix = $dialog->ask($output, $dialog->getQuestion('Routes prefix', '/'.$prefix.'s'), '/'.$prefix.'s');
+        $prefix = $dialog->ask($output, $dialog->getQuestion('Routes prefix', '/'.$prefix), '/'.$prefix);
         $input->setOption('route-prefix', $prefix);
 
         // summary
@@ -265,7 +265,7 @@ EOT
 
     protected function getRoutePrefix(InputInterface $input, $entity)
     {
-        $prefix = $input->getOption('route-prefix') ?: strtolower(str_replace(array('\\', '/'), '_', $entity));
+        $prefix = $input->getOption('route-prefix');
 
         if ($prefix && '/' === $prefix[0]) {
             $prefix = substr($prefix, 1);
