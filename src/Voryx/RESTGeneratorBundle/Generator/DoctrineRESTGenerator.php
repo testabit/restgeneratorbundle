@@ -14,6 +14,7 @@ namespace Voryx\RESTGeneratorBundle\Generator;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use Symfony\Component\DependencyInjection\Container;
 
 /**
  * Generates a REST controller.
@@ -145,16 +146,17 @@ class DoctrineRESTGenerator extends Generator
         }
 
         $this->renderFile('rest/controller.php.twig', $target, array(
-            'actions'           => $this->actions,
-            'route_prefix'      => $this->routePrefix,
-            'route_name_prefix' => $this->routeNamePrefix,
-            'bundle'            => $this->bundle->getName(),
-            'entity'            => $this->entity,
-            'entity_class'      => $entityClass,
-            'namespace'         => $this->bundle->getNamespace(),
-            'entity_namespace'  => $entityNamespace,
-            'format'            => $this->format,
-            'form_namespace'    => sprintf('%s\\Form\\%sType', $this->bundle->getNamespace(), $this->entity)
+            'actions'               => $this->actions,
+            'route_prefix'          => $this->routePrefix,
+            'route_name_prefix'     => $this->routeNamePrefix,
+            'bundle'                => $this->bundle->getName(),
+            'entity'                => $this->entity,
+            'entity_class'          => $entityClass,
+            'namespace'             => $this->bundle->getNamespace(),
+            'entity_namespace'      => $entityNamespace,
+            'format'                => $this->format,
+            'form_namespace'        => sprintf('%s\\Form\\%sType', $this->bundle->getNamespace(), $this->entity),
+            'manager_service_name'  => sprintf('%s.manager.%s', Container::underscore(substr($this->bundle->getName(), 0, -6)), strtolower($this->entity))
         ));
     }
 
