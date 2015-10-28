@@ -100,7 +100,7 @@ abstract class BaseManager implements ManagerInterface
     {
         $this->em->persist($object);
     }
-
+    
     /**
      * {@inheritdoc}
      */
@@ -114,6 +114,14 @@ abstract class BaseManager implements ManagerInterface
      * {@inheritdoc}
      */
     public function remove($object)
+    {
+        $this->em->remove($object);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function delete($object)
     {
         $this->em->remove($object);
         $this->em->flush();
