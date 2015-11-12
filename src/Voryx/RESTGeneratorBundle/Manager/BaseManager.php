@@ -72,6 +72,14 @@ abstract class BaseManager implements ManagerInterface
     /**
      * {@inheritdoc}
      */
+    public function getRepository()
+    {
+        return $this->repository;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function setFactory(ManagerFactoryInterface $factory)
     {
         $this->factory = $factory;
