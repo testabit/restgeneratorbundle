@@ -64,6 +64,14 @@ abstract class BaseManager implements ManagerInterface
     /**
      * {@inheritdoc}
      */
+    public function getObjectManager()
+    {
+        return $this->em;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function setRepository(ObjectRepository $repository)
     {
         $this->repository = $repository;
