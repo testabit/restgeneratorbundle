@@ -108,7 +108,7 @@ abstract class BaseManager implements ManagerInterface
     {
         $this->em->persist($object);
     }
-
+    
     /**
      * {@inheritdoc}
      */
